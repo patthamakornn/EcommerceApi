@@ -22,6 +22,24 @@ namespace ECommerceApi.API.Extensions
 					Description = "Enter 'Bearer' followed by your JWT token"
 				});
 
+				options.AddSecurityRequirement(new OpenApiSecurityRequirement
+				{
+					{
+						new OpenApiSecurityScheme
+						{
+							Reference = new OpenApiReference
+							{
+								Type = ReferenceType.SecurityScheme,
+								Id = "Bearer"
+							},
+							Scheme = "oauth2",
+							Name = "Bearer",
+							In = ParameterLocation.Header,
+						},
+						new List<string>()
+					}
+				});
+
 				var info = new OpenApiInfo
 				{
 					Title = "ECommerce API",
