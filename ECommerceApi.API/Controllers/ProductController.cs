@@ -1,7 +1,6 @@
 ﻿using ECommerceApi.Application.Interfaces.Services;
 using ECommerceApi.Application.Models.Common;
 using ECommerceApi.Application.Models.Dtos;
-using ECommerceApi.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ECommerceApi.API.Controllers

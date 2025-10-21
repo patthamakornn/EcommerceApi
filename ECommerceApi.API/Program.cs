@@ -2,6 +2,8 @@ using ECommerceApi.API.Extensions;
 using ECommerceApi.API.Filters;
 using ECommerceApi.Application;
 using ECommerceApi.Infrastructure;
+using ECommerceApi.Infrastructure.Persistence;
+using ECommerceApi.Infrastructure.Seeding;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,6 +25,14 @@ builder.Services.AddControllers(options =>
 builder.Services.AddEndpointsApiExplorer();
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+	var services = scope.ServiceProvider;
+	var dbContext = services.GetRequiredService<ApplicationDbContext>();
+
+	await DbSeeder.SeedAsync(dbContext);
+}
 
 app.UseSwaggerExtension();
 
