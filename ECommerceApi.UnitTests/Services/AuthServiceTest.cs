@@ -1,4 +1,3 @@
-using Arch.EntityFrameworkCore.UnitOfWork;
 using ECommerceApi.Application.Interfaces.Authentication;
 using ECommerceApi.Application.Interfaces.Repository;
 using ECommerceApi.Application.Interfaces.Services;
@@ -35,30 +34,52 @@ namespace ECommerceApi.UnitTests.Services
 		}
 
 		[Fact]
-		public async Task RegisterAsync_WhenEmailExists_ReturnsBadRequest()
+		public async Task RegisterAsync_ReturnsBadRequest_WhenEmailAlreadyExists()
 		{
 			// Arrange
 			var request = new RegisterRequest
 			{
-				Email = "test@xyzz.com",
+				Email = "test@example.com",
 				Password = "password",
 				FirstName = "Test",
 				LastName = "User"
 			};
 
-			_userRepoMock.Setup(x => x.GetUserByEmailAsync(request.Email))
-				.ReturnsAsync(new User());
+			_userRepoMock.Setup(r => r.GetUserByEmailAsync(request.Email)).ReturnsAsync(new User());
 
 			// Act
 			var result = await _authService.RegisterAsync(request);
 
 			// Assert
-			var error = Assert.IsType<ErrorDataResult<string>>(result);
-			Assert.Equal(HttpStatusCode.BadRequest.GetHashCode(), error.StatusCode);
+			var errorResult = Assert.IsType<ErrorDataResult<string>>(result);
+			Assert.Equal(HttpStatusCode.BadRequest.GetHashCode(), errorResult.StatusCode);
 		}
 
 		[Fact]
-		public async Task RegisterAsync_WhenSuccess_ReturnsSuccessMessage()
+		public async Task RegisterAsync_ReturnsCreateDataResult_WhenUserIsCreatedSuccessful()
+		{
+			// Arrange
+			var request = new RegisterRequest
+			{
+				Email = "test@example.com",
+				Password = "password",
+				FirstName = "Test",
+				LastName = "User"
+			};
+
+			_userRepoMock.Setup(r => r.GetUserByEmailAsync(request.Email)).ReturnsAsync((User?)null);
+			_passwordServiceMock.Setup(p => p.HashPassword(request.Password)).Returns("hashedPassword");
+
+			// Act
+			var result = await _authService.RegisterAsync(request);
+
+			// Assert
+			var createResult = Assert.IsType<CreateDataResult>(result); 
+			Assert.Equal(HttpStatusCode.Created.GetHashCode(), createResult.StatusCode);
+		}
+
+		[Fact]
+		public async Task RegisterAsync_ReturnsInternalServerError_WhenSaveFail()
 		{
 			// Arrange
 			var request = new RegisterRequest
@@ -71,89 +92,73 @@ namespace ECommerceApi.UnitTests.Services
 
 			_userRepoMock.Setup(x => x.GetUserByEmailAsync(request.Email)).ReturnsAsync((User)null!);
 			_passwordServiceMock.Setup(x => x.HashPassword(request.Password)).Returns("hashed");
-			_userRepoMock.Setup(x => x.CreateAsync(It.IsAny<User>())).Returns(Task.CompletedTask);
+			_userRepoMock.Setup(x => x.CreateAsync(It.IsAny<User>())).ThrowsAsync(new Exception("errorResult"));
 
 			// Act
 			var result = await _authService.RegisterAsync(request);
 
 			// Assert
-			Assert.Equal(HttpStatusCode.OK.GetHashCode(), result.StatusCode);
+			var errorResult = Assert.IsType<ErrorDataResult<string>>(result);
+			Assert.Equal(HttpStatusCode.InternalServerError.GetHashCode(), errorResult.StatusCode);
 		}
 
 		[Fact]
-		public async Task RegisterAsync_WhenSaveFails_ReturnsInternalServerError()
+		public async Task LoginAsync_ReturnsUnauthorized_WhenUserIsNull()
 		{
 			// Arrange
-			var request = new RegisterRequest
-			{
-				Email = "test@example.com",
-				Password = "password",
-				FirstName = "Test",
-				LastName = "User"
+			var request = new LoginRequest 
+			{ 
+				Email = "notfound@example.com",
+				Password = "pass123" 
 			};
 
-			_userRepoMock.Setup(x => x.GetUserByEmailAsync(request.Email))
-				.ReturnsAsync((User)null!);
-
-			_passwordServiceMock.Setup(x => x.HashPassword(request.Password))
-				.Returns("hashed");
-
-			_userRepoMock.Setup(x => x.CreateAsync(It.IsAny<User>()))
-				.ThrowsAsync(new Exception("error"));
-
-			// Act
-			var result = await _authService.RegisterAsync(request);
-
-			// Assert
-			var error = Assert.IsType<ErrorDataResult<string>>(result);
-			Assert.Equal(HttpStatusCode.InternalServerError.GetHashCode(), error.StatusCode);
-		}
-
-		[Fact]
-		public async Task LoginAsync_InvalidEmail_ReturnsUnauthorized()
-		{
-			// Arrange
-			var request = new LoginRequest { Email = "abcde@example.com", Password = "1234" };
-
-			_userRepoMock.Setup(x => x.GetUserByEmailAsync(request.Email))
-				.ReturnsAsync((User)null!);
-
-			// Act
-
-			var result = await _authService.LoginAsync(request);
-
-			// Assert
-			var error = Assert.IsType<ErrorDataResult<string>>(result);
-			Assert.Equal(HttpStatusCode.Unauthorized.GetHashCode(), error.StatusCode);
-		}
-
-		[Fact]
-		public async Task LoginAsync_InvalidPassword_ReturnsUnauthorized()
-		{
-			// Arrange
-			var user = new User { Email = "abcde@example.com", PasswordHash = "hashed123" };
-			var request = new LoginRequest { Email = "abcde@example.com", Password = "wrong" };
-
-			_userRepoMock.Setup(x => x.GetUserByEmailAsync(request.Email))
-				.ReturnsAsync(user);
-
-			_passwordServiceMock.Setup(x => x.VerifyPassword(request.Password, user.PasswordHash))
-				.Returns(false);
+			_userRepoMock.Setup(r => r.GetUserByEmailAsync(request.Email)).ReturnsAsync((User?)null);
 
 			// Act
 			var result = await _authService.LoginAsync(request);
 
 			// Assert
-			var error = Assert.IsType<ErrorDataResult<string>>(result);
-			Assert.Equal(HttpStatusCode.Unauthorized.GetHashCode(), error.StatusCode);
+			var errorResult = Assert.IsType<ErrorDataResult<string>>(result);
+			Assert.Equal(HttpStatusCode.Unauthorized.GetHashCode(), errorResult.StatusCode);
 		}
 
 		[Fact]
-		public async Task LoginAsync_Success_ReturnsTokens()
+		public async Task LoginAsync_ReturnsUnauthorized_WhenPasswordIsInvalid()
 		{
 			// Arrange
-			var user = new User { Email = "abcde@example.com", PasswordHash = "hashed123" };
-			var request = new LoginRequest { Email = "abcde@example.com", Password = "correct" };
+			var request = new LoginRequest
+			{
+				Email = "user@example.com",
+				Password = "wrongpass" 
+			};
+
+			var user = new User { Email = request.Email, PasswordHash = "correctHashedPassword" };
+			_userRepoMock.Setup(r => r.GetUserByEmailAsync(request.Email)).ReturnsAsync(user);
+			_passwordServiceMock.Setup(p => p.VerifyPassword(request.Password, user.PasswordHash)).Returns(false);
+
+			// Act
+			var result = await _authService.LoginAsync(request);
+
+			// Assert
+			var errorResult = Assert.IsType<ErrorDataResult<string>>(result);
+			Assert.Equal(HttpStatusCode.Unauthorized.GetHashCode(), errorResult.StatusCode);
+		}
+
+		[Fact]
+		public async Task LoginAsync_ReturnsSuccessDataResult_WhenLoginIsSuccessful()
+		{
+			// Arrange
+			var request = new LoginRequest 
+			{ 
+				Email = "user@example.com",
+				Password = "correctpass"
+			};
+
+			var user = new User 
+			{ 
+				Email = request.Email, 
+				PasswordHash = "hashedPass" 
+			};
 
 			var tokenResponse = new RefreshToken
 			{
@@ -161,26 +166,32 @@ namespace ECommerceApi.UnitTests.Services
 				Token = "refresh-token",
 			};
 
-			_userRepoMock.Setup(x => x.GetUserByEmailAsync(request.Email)).ReturnsAsync(user);
-			_passwordServiceMock.Setup(x => x.VerifyPassword(request.Password, user.PasswordHash)).Returns(true);
-			_refreshTokenServiceMock.Setup(x => x.GenerateTokenAsync(user)).ReturnsAsync(tokenResponse);
-			_jwtTokenGeneratorMock.Setup(x => x.GetExpiration("access-token")).Returns(DateTime.UtcNow.AddMinutes(15));
+			var expiresAt = DateTime.Now.AddHours(1);
+
+			_userRepoMock.Setup(r => r.GetUserByEmailAsync(request.Email)).ReturnsAsync(user);
+			_passwordServiceMock.Setup(p => p.VerifyPassword(request.Password, user.PasswordHash)).Returns(true);
+			_refreshTokenServiceMock.Setup(r => r.GenerateTokenAsync(user)).ReturnsAsync(tokenResponse);
+			_jwtTokenGeneratorMock.Setup(j => j.GetExpiration(tokenResponse.AccessToken)).Returns(expiresAt.ToUniversalTime());
 
 			// Act
 			var result = await _authService.LoginAsync(request);
 
 			// Assert
-			var success = Assert.IsType<SuccessDataResult<LoginResponse>>(result);
-			Assert.Equal(HttpStatusCode.OK.GetHashCode(), success.StatusCode);
-			Assert.Equal("access-token", success.Data.AccessToken);
-			Assert.Equal("refresh-token", success.Data.RefreshToken);
+			var successResult = Assert.IsType<SuccessDataResult<LoginResponse>>(result);
+			Assert.Equal(HttpStatusCode.OK.GetHashCode(), successResult.StatusCode);
+			Assert.Equal(tokenResponse.AccessToken, successResult.Data.AccessToken);
+			Assert.Equal(tokenResponse.Token, successResult.Data.RefreshToken);
 		}
 
 		[Fact]
-		public async Task LoginAsync_Exception_ReturnsInternalServerError()
+		public async Task LoginAsync_ReturnsInternalServerError_WhenException()
 		{
 			// Arrange
-			var request = new LoginRequest { Email = "abcde@example.com", Password = "1234" };
+			var request = new LoginRequest
+			{
+				Email = "user@example.com",
+				Password = "correctpass"
+			};
 
 			_userRepoMock.Setup(x => x.GetUserByEmailAsync(request.Email)).ThrowsAsync(new Exception("Something went wrong"));
 
@@ -188,8 +199,8 @@ namespace ECommerceApi.UnitTests.Services
 			var result = await _authService.LoginAsync(request);
 
 			// Assert
-			var error = Assert.IsType<ErrorDataResult<string>>(result);
-			Assert.Equal(HttpStatusCode.InternalServerError.GetHashCode(), error.StatusCode);
+			var errorResult = Assert.IsType<ErrorDataResult<string>>(result);
+			Assert.Equal(HttpStatusCode.InternalServerError.GetHashCode(), errorResult.StatusCode);
 		}
 
 	}

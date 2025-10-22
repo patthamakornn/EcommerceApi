@@ -4,7 +4,7 @@ namespace ECommerceApi.Application.Interfaces.Repository
 {
 	public interface IOrderRepository
 	{
-		void CreateAsync(Order order);
+		void Create(Order order);
 		Task<List<Order>> GetOrdersByUserIdAsync(Guid userId);
 	}
 }

@@ -19,7 +19,7 @@ namespace ECommerceApi.Infrastructure.Extensions
 			services.Configure<JwtSettings>(jwtSettingsSection);
 
 			var jwtSettings = jwtSettingsSection.Get<JwtSettings>();
-			var key = Encoding.UTF8.GetBytes(jwtSettings.Key);
+			var key = Encoding.UTF8.GetBytes(jwtSettings!.Key);
 
 			_ = services.AddAuthentication(options =>
 			{
@@ -50,8 +50,6 @@ namespace ECommerceApi.Infrastructure.Extensions
 							SecurityTokenInvalidSignatureException => "Invalid token signature",
 							_ => "Authentication failed"
 						};
-
-						Console.WriteLine(error);
 
 						context.Response.StatusCode = StatusCodes.Status401Unauthorized;
 						context.Response.ContentType = "application/json";
@@ -89,8 +87,7 @@ namespace ECommerceApi.Infrastructure.Extensions
 					},
 					OnTokenValidated = async context =>
 					{
-
-						var userIdStr = context.Principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+						var userIdStr = context.Principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
 						if (!Guid.TryParse(userIdStr, out var userId))
 						{
@@ -98,11 +95,16 @@ namespace ECommerceApi.Infrastructure.Extensions
 							return;
 						}
 
-						var accessToken = context.Request.Headers["Authorization"]
-								.ToString()
-								.Replace("Bearer ", "", StringComparison.OrdinalIgnoreCase);
+						if (!context.Request.Headers.TryGetValue("Authorization", out var authHeaderValue))
+						{
+							context.Fail("Missing Authorization header.");
+							return;
+						}
+
+						var accessToken = authHeaderValue.ToString().Replace("Bearer ", "", StringComparison.OrdinalIgnoreCase);
 
 						var tokenValidator = context.HttpContext.RequestServices.GetRequiredService<IRefreshTokenService>();
+
 						var isValid = await tokenValidator.ValidateAccessTokenAsync(userId, accessToken);
 
 						if (!isValid)

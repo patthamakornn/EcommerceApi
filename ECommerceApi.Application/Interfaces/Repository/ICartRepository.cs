@@ -6,9 +6,8 @@ namespace ECommerceApi.Application.Interfaces.Repository
 	{
 		Task CreateAsync(Cart cart);
 		Task<Cart?> GetCartByUserIdAsync(Guid userId);
-		void UpdateAsync(Cart cart);
+		void Update(Cart cart);
 		Task<Cart?> GetCartByIdAndUserIdAsync(Guid cartId, Guid userId);
-		Task<Cart?> GetByUserIdAndCartIdAsync(Guid userId, Guid cartId);
 		Task<Cart?> GetCartWithItemsAndProductsAsync(Guid userId);
 	}
 }

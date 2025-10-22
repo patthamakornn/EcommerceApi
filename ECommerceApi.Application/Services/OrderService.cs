@@ -69,11 +69,11 @@ namespace ECommerceApi.Application.Services
 					});
 				}
 
-				_orderRepo.CreateAsync(order);
+				_orderRepo.Create(order);
 				cart.CartItems.Clear();
 				cart.UpdatedDate = DateTime.UtcNow;
 
-				_cartRepo.UpdateAsync(cart);
+				_cartRepo.Update(cart);
 				await _unitOfWork.SaveChangesAsync();
 
 				var response = new OrderResponse { OrderId = order.Id };

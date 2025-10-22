@@ -14,7 +14,7 @@ namespace ECommerceApi.Infrastructure.Repositories
 			_context = context;
 		}
 
-		public void CreateAsync(Order order)
+		public void Create(Order order)
 		{
 			_context.Orders.Add(order);
 		}

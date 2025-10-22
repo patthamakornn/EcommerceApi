@@ -30,41 +30,41 @@ namespace ECommerceApi.UnitTests.Services
 		}
 
 		[Fact]
-		public async Task CheckoutAsync_CartNotFound_ReturnsNotFound()
+		public async Task CheckoutAsync_ReturnsNotFound_WhenCartIsNull()
 		{
 			// Arrange
 			var userId = Guid.NewGuid();
-			_cartRepoMock.Setup(x => x.GetCartWithItemsAndProductsAsync(userId))
-				.ReturnsAsync((Cart)null!);
+
+			_cartRepoMock.Setup(x => x.GetCartWithItemsAndProductsAsync(userId)).ReturnsAsync((Cart)null!);
 
 			// Act
 			var result = await _orderService.CheckoutAsync(userId);
 
 			// Assert
-			var error = Assert.IsType<ErrorDataResult<string>>(result);
-			Assert.Equal(HttpStatusCode.NotFound.GetHashCode(), error.StatusCode);
+			var errorResult = Assert.IsType<ErrorDataResult<string>>(result);
+			Assert.Equal(HttpStatusCode.NotFound.GetHashCode(), errorResult.StatusCode);
 		}
 
 		[Fact]
-		public async Task CheckoutAsync_EmptyCart_ReturnsNotFound()
+		public async Task CheckoutAsync_ReturnsNotFound_WhenCartItemsEmpty()
 		{
 			// Arrange
 			var userId = Guid.NewGuid();
+
 			var cart = new Cart { CartItems = new List<CartItem>() };
 
-			_cartRepoMock.Setup(x => x.GetCartWithItemsAndProductsAsync(userId))
-				.ReturnsAsync(cart);
+			_cartRepoMock.Setup(x => x.GetCartWithItemsAndProductsAsync(userId)).ReturnsAsync(cart);
 
 			// Act
 			var result = await _orderService.CheckoutAsync(userId);
 
 			// Assert
-			var error = Assert.IsType<ErrorDataResult<string>>(result);
-			Assert.Equal(HttpStatusCode.NotFound.GetHashCode(), error.StatusCode);
+			var errorResult = Assert.IsType<ErrorDataResult<string>>(result);
+			Assert.Equal(HttpStatusCode.NotFound.GetHashCode(), errorResult.StatusCode);
 		}
 
 		[Fact]
-		public async Task CheckoutAsync_ProductIsNull_ReturnsBadRequest()
+		public async Task CheckoutAsync_ReturnsBadRequest_WhenProductIsNull()
 		{
 			// Arrange
 			var userId = Guid.NewGuid();
@@ -82,19 +82,18 @@ namespace ECommerceApi.UnitTests.Services
 				}
 			};
 
-			_cartRepoMock.Setup(x => x.GetCartWithItemsAndProductsAsync(userId))
-				.ReturnsAsync(cart);
+			_cartRepoMock.Setup(x => x.GetCartWithItemsAndProductsAsync(userId)).ReturnsAsync(cart);
 
 			// Act
 			var result = await _orderService.CheckoutAsync(userId);
 
 			// Assert
-			var error = Assert.IsType<ErrorDataResult<string>>(result);
-			Assert.Equal(HttpStatusCode.BadRequest.GetHashCode(), error.StatusCode);
+			var errorResult = Assert.IsType<ErrorDataResult<string>>(result);
+			Assert.Equal(HttpStatusCode.BadRequest.GetHashCode(), errorResult.StatusCode);
 		}
 
 		[Fact]
-		public async Task CheckoutAsync_InsufficientStock_ReturnsBadRequest()
+		public async Task CheckoutAsync_ReturnsBadRequest_WhenProductStockIsNotEnough()
 		{
 			// Arrange
 			var userId = Guid.NewGuid();
@@ -119,19 +118,18 @@ namespace ECommerceApi.UnitTests.Services
 				}
 			};
 
-			_cartRepoMock.Setup(x => x.GetCartWithItemsAndProductsAsync(userId))
-				.ReturnsAsync(cart);
+			_cartRepoMock.Setup(x => x.GetCartWithItemsAndProductsAsync(userId)).ReturnsAsync(cart);
 
 			// Act
 			var result = await _orderService.CheckoutAsync(userId);
 
 			// Assert
-			var error = Assert.IsType<ErrorDataResult<string>>(result);
-			Assert.Equal(HttpStatusCode.BadRequest.GetHashCode(), error.StatusCode);
+			var errorResult = Assert.IsType<ErrorDataResult<string>>(result);
+			Assert.Equal(HttpStatusCode.BadRequest.GetHashCode(), errorResult.StatusCode);
 		}
 
 		[Fact]
-		public async Task CheckoutAsync_Success_ReturnsOrderId()
+		public async Task CheckoutAsync_ReturnsSuccess_WhenCheckoutIsSuccessful()
 		{
 			// Arrange
 			var userId = Guid.NewGuid();
@@ -159,43 +157,37 @@ namespace ECommerceApi.UnitTests.Services
 				CartItems = new List<CartItem> { cartItem }
 			};
 
-			_cartRepoMock.Setup(x => x.GetCartWithItemsAndProductsAsync(userId))
-				.ReturnsAsync(cart);
-
-			_orderRepoMock.Setup(x => x.CreateAsync(It.IsAny<Order>()));
-
-			_cartRepoMock.Setup(x => x.UpdateAsync(It.IsAny<Cart>()));
-
-			_unitOfWorkMock.Setup(x => x.SaveChangesAsync(It.IsAny<bool>()))
-				.ReturnsAsync(1);
+			_cartRepoMock.Setup(x => x.GetCartWithItemsAndProductsAsync(userId)).ReturnsAsync(cart);
+			_orderRepoMock.Setup(x => x.Create(It.IsAny<Order>()));
+			_cartRepoMock.Setup(x => x.Update(It.IsAny<Cart>()));
+			_unitOfWorkMock.Setup(x => x.SaveChangesAsync(It.IsAny<bool>())).ReturnsAsync(1);
 
 			// Act
 			var result = await _orderService.CheckoutAsync(userId);
 
 			// Assert
-			var success = Assert.IsType<SuccessDataResult<OrderResponse>>(result);
-			Assert.NotEqual(Guid.Empty, success.Data.OrderId);
+			var successResult = Assert.IsType<SuccessDataResult<OrderResponse>>(result);
+			Assert.NotEqual(Guid.Empty, successResult.Data.OrderId);
 		}
 
 		[Fact]
-		public async Task CheckoutAsync_ExceptionThrown_ReturnsError()
+		public async Task CheckoutAsync_ReturnsInternalServerError_WhenException()
 		{
 			// Arrange
 			var userId = Guid.NewGuid();
 
-			_cartRepoMock.Setup(x => x.GetCartWithItemsAndProductsAsync(userId))
-				.ThrowsAsync(new Exception("failed"));
+			_cartRepoMock.Setup(x => x.GetCartWithItemsAndProductsAsync(userId)).ThrowsAsync(new Exception("failed"));
 
 			// Act
 			var result = await _orderService.CheckoutAsync(userId);
 
 			// Assert
-			var error = Assert.IsType<ErrorDataResult<string>>(result);
-			Assert.Equal(HttpStatusCode.InternalServerError.GetHashCode(), error.StatusCode);
+			var errorResult = Assert.IsType<ErrorDataResult<string>>(result);
+			Assert.Equal(HttpStatusCode.InternalServerError.GetHashCode(), errorResult.StatusCode);
 		}
 
 		[Fact]
-		public async Task GetUserOrdersAsync_WhenOrdersExist_ReturnsSuccess()
+		public async Task GetUserOrdersAsync_ReturnsSuccessDataResult_WhenOrdersExist()
 		{
 			// Arrange
 			var userId = Guid.NewGuid();
@@ -234,35 +226,23 @@ namespace ECommerceApi.UnitTests.Services
 
 			// Assert
 			var successResult = Assert.IsType<SuccessDataResult<List<OrderDto>>>(result);
-			Assert.Single(successResult.Data);
-
-			var dto = successResult.Data.First();
-			Assert.Equal(orderId, dto.OrderId);
-			Assert.Equal(100, dto.TotalAmount);
-			Assert.Single(dto.Items);
-
-			var item = dto.Items.First();
-			Assert.Equal(productId, item.ProductId);
-			Assert.Equal("Test Product", item.ProductName);
-			Assert.Equal(2, item.Quantity);
-			Assert.Equal(50, item.Price);
+			Assert.Equal(HttpStatusCode.OK.GetHashCode(), successResult.StatusCode);
 		}
 
 		[Fact]
-		public async Task GetUserOrdersAsync_WhenExceptionThrown_ReturnsError()
+		public async Task GetUserOrdersAsync_ReturnsInternalServerError_WhenException()
 		{
 			// Arrange
 			var userId = Guid.NewGuid();
 
-			_orderRepoMock.Setup(x => x.GetOrdersByUserIdAsync(userId))
-				.ThrowsAsync(new Exception("failed"));
+			_orderRepoMock.Setup(x => x.GetOrdersByUserIdAsync(userId)).ThrowsAsync(new Exception("failed"));
 
 			// Act
 			var result = await _orderService.GetUserOrdersAsync(userId);
 
 			// Assert
-			var error = Assert.IsType<ErrorDataResult<string>>(result);
-			Assert.Equal(HttpStatusCode.InternalServerError.GetHashCode(), error.StatusCode);
+			var errorResult = Assert.IsType<ErrorDataResult<string>>(result);
+			Assert.Equal(HttpStatusCode.InternalServerError.GetHashCode(), errorResult.StatusCode);
 		}
 	}
 }

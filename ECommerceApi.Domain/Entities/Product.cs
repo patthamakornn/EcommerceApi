@@ -1,5 +1,4 @@
-﻿using System;
-namespace ECommerceApi.Domain.Entities;
+﻿namespace ECommerceApi.Domain.Entities;
 
 public partial class Product
 {

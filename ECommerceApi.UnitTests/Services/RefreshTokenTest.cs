@@ -42,19 +42,16 @@ namespace ECommerceApi.UnitTests.Services
 				_jwtTokenGeneratorMock.Object,
 				_jwtSettingsOptions
 			);
-
-
 		}
 
 		[Fact]
-		public async Task ValidateAccessTokenAsync_TokenExists_ReturnsTrue()
+		public async Task ValidateAccessTokenAsync_ReturnsTrue_WhenTokenExists()
 		{
 			// Arrange
 			var userId = Guid.NewGuid();
 			var token = "some-access-token";
 
-			_refreshTokenRepoMock.Setup(x => x.GetTokenAsync(userId, token))
-				.ReturnsAsync(new RefreshToken());
+			_refreshTokenRepoMock.Setup(x => x.GetTokenAsync(userId, token)).ReturnsAsync(new RefreshToken());
 
 			// Act
 			var result = await _refreshTokenService.ValidateAccessTokenAsync(userId, token);
@@ -64,14 +61,13 @@ namespace ECommerceApi.UnitTests.Services
 		}
 
 		[Fact]
-		public async Task ValidateAccessTokenAsync_TokenNotFound_ReturnsFalse()
+		public async Task ValidateAccessTokenAsync_ReturnsFalse_WhenTokenIsNull()
 		{
 			// Arrange
 			var userId = Guid.NewGuid();
 			var token = "invalid-token";
 
-			_refreshTokenRepoMock.Setup(x => x.GetTokenAsync(userId, token))
-				.ReturnsAsync((RefreshToken)null!);
+			_refreshTokenRepoMock.Setup(x => x.GetTokenAsync(userId, token)).ReturnsAsync((RefreshToken)null!);
 
 			// Act
 			var result = await _refreshTokenService.ValidateAccessTokenAsync(userId, token);
@@ -81,27 +77,30 @@ namespace ECommerceApi.UnitTests.Services
 		}
 
 		[Fact]
-		public async Task RefreshTokensAsync_InvalidToken_ReturnsUnauthorized()
+		public async Task RefreshTokensAsync_ReturnsUnauthorizedError_WhenInvalidToken()
 		{
 			// Arrange
 			var token = "expired-token";
-			_refreshTokenRepoMock.Setup(x => x.GetWithUserByTokenAsync(token))
-				.ReturnsAsync((RefreshToken)null!);
+			_refreshTokenRepoMock.Setup(x => x.GetWithUserByTokenAsync(token)).ReturnsAsync((RefreshToken)null!);
 
 			// Act
 			var result = await _refreshTokenService.RefreshTokensAsync(token);
 
 			// Assert
-			var error = Assert.IsType<ErrorDataResult<string>>(result);
-			//Assert.Equal(HttpStatusCode.Unauthorized, error.StatusCode);
+			var errorResult = Assert.IsType<ErrorDataResult<string>>(result);
+			Assert.Equal(HttpStatusCode.Unauthorized.GetHashCode(), errorResult.StatusCode);
 		}
 
 		[Fact]
-		public async Task RefreshTokensAsync_ValidToken_ReturnsNewTokens()
+		public async Task RefreshTokensAsync_ReturnsSuccessDataResult_WhenTokenIsValid()
 		{
 			// Arrange
 			var token = "valid-refresh-token";
-			var user = new User { Id = Guid.NewGuid(), Email = "test@example.com" };
+			var user = new User 
+			{ 
+				Id = Guid.NewGuid(),
+				Email = "test@example.com" 
+			};
 
 			var existingToken = new RefreshToken
 			{
@@ -110,48 +109,35 @@ namespace ECommerceApi.UnitTests.Services
 				User = user
 			};
 
-			_refreshTokenRepoMock.Setup(x => x.GetWithUserByTokenAsync(token))
-				.ReturnsAsync(existingToken);
-
-			_refreshTokenRepoMock.Setup(x => x.DeleteOldTokensAsync(user.Id))
-				.Returns(Task.CompletedTask);
-
-			_refreshTokenRepoMock.Setup(x => x.AddAsync(It.IsAny<RefreshToken>()))
-				.Returns(Task.CompletedTask);
-
-			_unitOfWorkMock.Setup(x => x.SaveChangesAsync(It.IsAny<bool>()))
-				.ReturnsAsync(1);
-
-			_jwtTokenGeneratorMock.Setup(x => x.GenerateToken(user))
-				.Returns("new-access-token");
+			_refreshTokenRepoMock.Setup(x => x.GetWithUserByTokenAsync(token)).ReturnsAsync(existingToken);
+			_refreshTokenRepoMock.Setup(x => x.DeleteOldTokensAsync(user.Id)).Returns(Task.CompletedTask);
+			_refreshTokenRepoMock.Setup(x => x.AddAsync(It.IsAny<RefreshToken>())).Returns(Task.CompletedTask);
+			_unitOfWorkMock.Setup(x => x.SaveChangesAsync(It.IsAny<bool>())).ReturnsAsync(1);
+			_jwtTokenGeneratorMock.Setup(x => x.GenerateToken(user)).Returns("new-access-token");
+			_jwtTokenGeneratorMock.Setup(x => x.GenerateRefreshToken()).Returns("new-refresh-token");
 
 			// Act
 			var result = await _refreshTokenService.RefreshTokensAsync(token);
 
 			// Assert
-			var success = Assert.IsType<SuccessDataResult<RefreshTokenResponse>>(result);
-			Assert.Equal("new-access-token", success.Data.AccessToken);
-			Assert.False(string.IsNullOrWhiteSpace(success.Data.RefreshToken));
+			var successResult = Assert.IsType<SuccessDataResult<RefreshTokenResponse>>(result);
+			Assert.Equal(HttpStatusCode.OK.GetHashCode(), successResult.StatusCode);
+			Assert.Equal("new-access-token", successResult.Data.AccessToken);
+			Assert.False(string.IsNullOrWhiteSpace(successResult.Data.RefreshToken));
 		}
 
 		[Fact]
-		public async Task GenerateTokenAsync_CreatesAndReturnsRefreshToken()
+		public async Task GenerateTokenAsync_ReturnsRefreshToken_WhenSuccessful()
 		{
 			// Arrange
 			var user = new User { Id = Guid.NewGuid() };
 			var accessToken = "access-token-generated";
 
-			_refreshTokenRepoMock.Setup(x => x.DeleteOldTokensAsync(user.Id))
-				.Returns(Task.CompletedTask);
-
-			_jwtTokenGeneratorMock.Setup(x => x.GenerateToken(user))
-				.Returns(accessToken);
-
-			_refreshTokenRepoMock.Setup(x => x.AddAsync(It.IsAny<RefreshToken>()))
-				.Returns(Task.CompletedTask);
-
-			_unitOfWorkMock.Setup(x => x.SaveChangesAsync(It.IsAny<bool>()))
-				.ReturnsAsync(1);
+			_refreshTokenRepoMock.Setup(x => x.DeleteOldTokensAsync(user.Id)).Returns(Task.CompletedTask);
+			_jwtTokenGeneratorMock.Setup(x => x.GenerateToken(user)).Returns(accessToken);
+			_jwtTokenGeneratorMock.Setup(x => x.GenerateRefreshToken()).Returns(accessToken);
+			_refreshTokenRepoMock.Setup(x => x.AddAsync(It.IsAny<RefreshToken>())).Returns(Task.CompletedTask);
+			_unitOfWorkMock.Setup(x => x.SaveChangesAsync(It.IsAny<bool>())).ReturnsAsync(1);
 
 			// Act
 			var result = await _refreshTokenService.GenerateTokenAsync(user);

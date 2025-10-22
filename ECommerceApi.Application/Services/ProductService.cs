@@ -2,7 +2,6 @@
 using ECommerceApi.Application.Interfaces.Services;
 using ECommerceApi.Application.Models.Common;
 using ECommerceApi.Application.Models.Dtos;
-using ECommerceApi.Domain.Entities;
 using Serilog;
 using System.Net;
 

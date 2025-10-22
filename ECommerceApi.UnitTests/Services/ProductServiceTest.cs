@@ -23,7 +23,7 @@ namespace ECommerceApi.UnitTests.Services
 		}
 
 		[Fact]
-		public async Task GetAllProductsAsync_WhenCalled_ReturnsAllProducts()
+		public async Task GetAllProductsAsync_ReturnsSuccessDataResult_WhenProductsExist()
 		{   
 			// Arrange
 			var products = new List<Product>
@@ -44,7 +44,7 @@ namespace ECommerceApi.UnitTests.Services
 		}
 
 		[Fact]
-		public async Task GetAllProductsAsync_WhenExceptionThrown_ReturnsError()
+		public async Task GetAllProductsAsync_ReturnsInternalServerError_WhenException()
 		{
 			// Arrange
 			_productRepoMock.Setup(repo => repo.GetAllAsync())

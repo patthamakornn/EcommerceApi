@@ -1,5 +1,4 @@
-﻿
-using ECommerceApi.Domain.Entities;
+﻿using ECommerceApi.Domain.Entities;
 
 namespace ECommerceApi.Application.Interfaces.Authentication
 {
@@ -8,6 +7,7 @@ namespace ECommerceApi.Application.Interfaces.Authentication
 		string GenerateToken(User user);
 		DateTime GetExpiration(string token);
 		bool IsTokenExpired(string token);
+		string GenerateRefreshToken();
 	}
 
 }

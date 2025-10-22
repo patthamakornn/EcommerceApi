@@ -8,7 +8,6 @@ using ECommerceApi.Domain.Entities;
 using Microsoft.Extensions.Options;
 using Serilog;
 using System.Net;
-using System.Security.Cryptography;
 
 namespace ECommerceApi.Application.Services
 {
@@ -58,8 +57,6 @@ namespace ECommerceApi.Application.Services
 					return new ErrorDataResult<string>(HttpStatusCode.Unauthorized, "Expired refresh token");
 				}
 
-				await _unitOfWork.SaveChangesAsync();
-
 				var newToken = await GenerateTokenAsync(token.User);
 
 				var response = new RefreshTokenResponse
@@ -77,14 +74,6 @@ namespace ECommerceApi.Application.Services
 			}
 		}
 
-		private string GenerateRefreshToken()
-		{
-			var randomBytes = new byte[64];
-			using var randomNumber = RandomNumberGenerator.Create();
-			randomNumber.GetBytes(randomBytes);
-			return Convert.ToBase64String(randomBytes);
-		}
-
 		public async Task<RefreshToken> GenerateTokenAsync(User user)
 		{
 			try
@@ -96,7 +85,7 @@ namespace ECommerceApi.Application.Services
 				var refreshToken = new RefreshToken
 				{
 					UserId = user.Id,
-					Token = GenerateRefreshToken(),
+					Token = _jwtTokenGenerator.GenerateRefreshToken(),
 					AccessToken = accessToken,
 					ExpiresAt = DateTime.UtcNow.AddDays(_jwtSettings.RefreshTokenExpirationDays),
 				};
@@ -105,7 +94,6 @@ namespace ECommerceApi.Application.Services
 				await _unitOfWork.SaveChangesAsync();
 
 				return refreshToken;
-
 			}
 			catch (Exception ex)
 			{

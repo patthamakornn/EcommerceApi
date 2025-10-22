@@ -31,7 +31,7 @@ namespace ECommerceApi.Application.Services
 				{
 					var cartResponse = new CartResponse { CartId = existingCart.Id };
 					Log.Information("CreateCartAsync : Found existing cart for userId {UserId}, cartId {CartId}", userId, existingCart.Id);
-					return new SuccessDataResult<CartResponse>(cartResponse);
+					return new CreateDataResult<CartResponse>(cartResponse);
 				}
 
 				var cart = new Cart
@@ -45,7 +45,7 @@ namespace ECommerceApi.Application.Services
 				await _cartRepo.CreateAsync(cart);
 
 				var response = new CartResponse { CartId = cart.Id };
-				return new SuccessDataResult<CartResponse>(response);
+				return new CreateDataResult<CartResponse>(response);
 			}
 			catch (Exception ex)
 			{
@@ -58,9 +58,9 @@ namespace ECommerceApi.Application.Services
 		{
 			try
 			{
-				var cart = await _cartRepo.GetCartByUserIdAsync(userId);
+				var cart = await _cartRepo.GetCartByIdAndUserIdAsync(cartId, userId);
 
-				if (cart is null || cart.UserId != userId) 
+				if (cart is null) 
 				{
 					Log.Information("AddProductToCartAsync : Cart not found or access denied");
 					return new ErrorDataResult<string>(HttpStatusCode.NotFound, "Cart not found or access denied.");
@@ -102,10 +102,10 @@ namespace ECommerceApi.Application.Services
 					cart.CartItems.Add(cartItem);
 				}
 
-				_cartRepo.UpdateAsync(cart);
+				_cartRepo.Update(cart);
 				await _unitOfWork.SaveChangesAsync();
 
-				return new Result(HttpStatusCode.OK);
+				return new SuccessDataResult<string>("Product added to cart");
 			}
 			catch (Exception ex)
 			{
@@ -152,7 +152,7 @@ namespace ECommerceApi.Application.Services
 		{
 			try
 			{
-				var cart = await _cartRepo.GetByUserIdAndCartIdAsync(userId, cartId);
+				var cart = await _cartRepo.GetCartByIdAndUserIdAsync(cartId, userId);
 
 				if (cart is null)
 				{
@@ -179,10 +179,10 @@ namespace ECommerceApi.Application.Services
 					cart.UpdatedDate = DateTime.UtcNow;
 				}
 
-				_cartRepo.UpdateAsync(cart);
+				_cartRepo.Update(cart);
 				await _unitOfWork.SaveChangesAsync();
 
-				return new Result(HttpStatusCode.OK);
+				return new SuccessDataResult<string>("Product removed from cart");
 			}
 			catch (Exception ex)
 			{

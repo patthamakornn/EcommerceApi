@@ -1,5 +1,4 @@
-﻿using Arch.EntityFrameworkCore.UnitOfWork;
-using ECommerceApi.Application.Interfaces.Authentication;
+﻿using ECommerceApi.Application.Interfaces.Authentication;
 using ECommerceApi.Application.Interfaces.Repository;
 using ECommerceApi.Application.Interfaces.Services;
 using ECommerceApi.Application.Models.Common;
@@ -48,7 +47,7 @@ namespace ECommerceApi.Application.Services
 
 				await _userRepo.CreateAsync(user);
 
-				return new Result(HttpStatusCode.OK);
+				return new CreateDataResult();
 			}
 			catch (Exception ex)
 			{

@@ -2,7 +2,6 @@
 using ECommerceApi.Domain.Entities;
 using ECommerceApi.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
-using System;
 
 namespace ECommerceApi.Infrastructure.Repositories
 {
@@ -38,15 +37,7 @@ namespace ECommerceApi.Infrastructure.Repositories
 				.FirstOrDefaultAsync();
 		}
 
-		public async Task<Cart?> GetByUserIdAndCartIdAsync(Guid userId, Guid cartId)
-		{
-			return await _context.Carts
-				.Include(c => c.CartItems)
-				.Where(c => c.Id == cartId && c.UserId == userId)
-				.FirstOrDefaultAsync();
-		}
-
-		public void UpdateAsync(Cart cart)
+		public void Update(Cart cart)
 		{
 			_context.Carts.Update(cart);
 		}

@@ -1,5 +1,4 @@
 ﻿using ECommerceApi.Application.Models.Common;
-using ECommerceApi.Application.Models.Dtos;
 
 namespace ECommerceApi.Application.Interfaces.Services
 {

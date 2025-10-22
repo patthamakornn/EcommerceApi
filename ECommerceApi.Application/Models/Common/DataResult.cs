@@ -1,6 +1,5 @@
 ﻿using Swashbuckle.AspNetCore.Filters;
 using System.Net;
-using System.Xml.Linq;
 
 namespace ECommerceApi.Application.Models.Common
 {
