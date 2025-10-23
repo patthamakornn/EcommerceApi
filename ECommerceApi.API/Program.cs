@@ -4,6 +4,7 @@ using ECommerceApi.Application;
 using ECommerceApi.Infrastructure;
 using ECommerceApi.Infrastructure.Persistence;
 using ECommerceApi.Infrastructure.Seeding;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,6 +32,7 @@ using (var scope = app.Services.CreateScope())
 	var services = scope.ServiceProvider;
 	var dbContext = services.GetRequiredService<ApplicationDbContext>();
 
+	await dbContext.Database.MigrateAsync();
 	await DbSeeder.SeedAsync(dbContext);
 }
 
