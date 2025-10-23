@@ -23,7 +23,7 @@ namespace ECommerceApi.API.Middleware
 			}
 			catch (Exception ex)
 			{
-				_logger.LogError(ex, ex.Message);
+				_logger.LogError(ex.Message);
 
 				if (!context.Response.HasStarted)
 				{

@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
+using System.Net;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
@@ -55,11 +56,7 @@ namespace ECommerceApi.Infrastructure.Extensions
 						context.Response.ContentType = "application/json";
 						context.Response.Headers.Append("Token-Expired", "true");
 
-						var response = new
-						{
-							statusCode = 401,
-							message = error
-						};
+						var response = new ErrorDataResult<object>(HttpStatusCode.Unauthorized, error);
 
 						var json = JsonSerializer.Serialize(response);
 						return context.Response.WriteAsync(JsonSerializer.Serialize(response));
@@ -73,12 +70,7 @@ namespace ECommerceApi.Infrastructure.Extensions
 							context.Response.StatusCode = StatusCodes.Status401Unauthorized;
 							context.Response.ContentType = "application/json";
 
-							var response = new
-							{
-								statusCode = 401,
-								message = "Unauthorized access"
-								
-							};
+							var response = new ErrorDataResult<object>(HttpStatusCode.Unauthorized, "Unauthorized access");
 
 							return context.Response.WriteAsync(JsonSerializer.Serialize(response));
 						}

@@ -115,7 +115,11 @@ namespace ECommerceApi.UnitTests.Services
 			var cartId = Guid.NewGuid();
 			var productId = Guid.NewGuid();
 
-			var cart = new Cart { UserId = userId, CartItems = new List<CartItem>() };
+			var cart = new Cart
+			{
+				UserId = userId,
+				CartItems = new List<CartItem>()
+			};
 
 			_cartRepoMock.Setup(x => x.GetCartByIdAndUserIdAsync(cartId, userId)).ReturnsAsync(cart);
 			_productRepoMock.Setup(x => x.GetProductByIdAsync(productId)).ReturnsAsync((Product?)null);
@@ -145,7 +149,10 @@ namespace ECommerceApi.UnitTests.Services
 			var cart = new Cart
 			{
 				UserId = userId,
-				CartItems = new List<CartItem> { existingCartItem }
+				CartItems = new List<CartItem> 
+				{ 
+					existingCartItem 
+				}
 			};
 
 			var product = new Product
@@ -219,7 +226,10 @@ namespace ECommerceApi.UnitTests.Services
 			var cart = new Cart
 			{
 				UserId = userId,
-				CartItems = new List<CartItem> { cartItem }
+				CartItems = new List<CartItem> 
+				{ 
+					cartItem 
+				}
 			};
 
 			var product = new Product
@@ -369,7 +379,10 @@ namespace ECommerceApi.UnitTests.Services
 			var cart = new Cart
 			{
 				Id = cartId,
-				CartItems = new List<CartItem> { cartItem }
+				CartItems = new List<CartItem> 
+				{ 
+					cartItem 
+				}
 			};
 
 			_cartRepoMock.Setup(x => x.GetCartByIdAndUserIdAsync(cartId, userId)).ReturnsAsync(cart);
@@ -402,7 +415,10 @@ namespace ECommerceApi.UnitTests.Services
 			var cart = new Cart
 			{
 				Id = cartId,
-				CartItems = new List<CartItem> { cartItem }
+				CartItems = new List<CartItem> 
+				{ 
+					cartItem 
+				}
 			};
 
 			_cartRepoMock.Setup(x => x.GetCartByIdAndUserIdAsync(cartId, userId)).ReturnsAsync(cart);
