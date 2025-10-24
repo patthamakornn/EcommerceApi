@@ -19,7 +19,7 @@ namespace ECommerceApi.API.Extensions
 					Scheme = "Bearer",
 					BearerFormat = "JWT",
 					In = ParameterLocation.Header,
-					Description = "Enter 'Bearer' followed by your JWT token"
+					Description = "JWT Authorization header using the Bearer scheme."
 				});
 
 				options.AddSecurityRequirement(new OpenApiSecurityRequirement

@@ -12,28 +12,14 @@
     cd EcommerceApi
     ```
 
-2. Build และรัน Container ด้วย Docker Compose
+2. Build และ Run Container API ,DB
     ```bash
-    docker-compose ps
+    docker-compose up --build
     ```
 
-3. Run Database Migration 
-    ```bash
-    dotnet ef database update --project ECommerceApi.Infrastructure --startup-project ECommerceApi.API
-    ```
-    - สร้าง Migration ตัวแรก (ถ้ายังไม่มี)
-    ```bash
-    dotnet ef migrations add InitialCreate --project ECommerceApi.Infrastructure --startup-project ECommerceApi.API
-    ```
+3. เปิด Swagger UI เพื่อทดสอบ API ได้ที่  
 
-4. Run API
-     ```bash
-    cd EcommerceApi.API
-    dotnet run
-    ```
-
-5. เปิด Swagger UI เพื่อทดสอบ API ได้ที่  
-    [http://localhost:5000/swagger/index.html](http://localhost:5000/swagger/index.html)
+    [http://localhost:8080/swagger/index.html](http://localhost:8080/swagger/index.html)
 
 ---
 
