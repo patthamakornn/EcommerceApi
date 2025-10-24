@@ -92,7 +92,7 @@ namespace ECommerceApi.UnitTests.Services
 
 			_userRepoMock.Setup(x => x.GetUserByEmailAsync(request.Email)).ReturnsAsync((User)null!);
 			_passwordServiceMock.Setup(x => x.HashPassword(request.Password)).Returns("hashed");
-			_userRepoMock.Setup(x => x.CreateAsync(It.IsAny<User>())).ThrowsAsync(new Exception("errorResult"));
+			_userRepoMock.Setup(x => x.CreateAsync(It.IsAny<User>())).ThrowsAsync(new Exception("error"));
 
 			// Act
 			var result = await _authService.RegisterAsync(request);
@@ -108,8 +108,8 @@ namespace ECommerceApi.UnitTests.Services
 			// Arrange
 			var request = new LoginRequest 
 			{ 
-				Email = "notfound@example.com",
-				Password = "pass123" 
+				Email = "test@example.com",
+				Password = "password"
 			};
 
 			_userRepoMock.Setup(r => r.GetUserByEmailAsync(request.Email)).ReturnsAsync((User?)null);
@@ -128,11 +128,11 @@ namespace ECommerceApi.UnitTests.Services
 			// Arrange
 			var request = new LoginRequest
 			{
-				Email = "user@example.com",
-				Password = "wrongpass" 
+				Email = "test@example.com",
+				Password = "password"
 			};
 
-			var user = new User { Email = request.Email, PasswordHash = "correctHashedPassword" };
+			var user = new User { Email = request.Email, PasswordHash = "HashedPassword" };
 			_userRepoMock.Setup(r => r.GetUserByEmailAsync(request.Email)).ReturnsAsync(user);
 			_passwordServiceMock.Setup(p => p.VerifyPassword(request.Password, user.PasswordHash)).Returns(false);
 
@@ -150,8 +150,8 @@ namespace ECommerceApi.UnitTests.Services
 			// Arrange
 			var request = new LoginRequest 
 			{ 
-				Email = "user@example.com",
-				Password = "correctpass"
+				Email = "test@example.com",
+				Password = "password"
 			};
 
 			var user = new User 
@@ -179,8 +179,8 @@ namespace ECommerceApi.UnitTests.Services
 			// Assert
 			var successResult = Assert.IsType<SuccessDataResult<LoginResponse>>(result);
 			Assert.Equal(HttpStatusCode.OK.GetHashCode(), successResult.StatusCode);
-			Assert.Equal(tokenResponse.AccessToken, successResult.Data.AccessToken);
-			Assert.Equal(tokenResponse.Token, successResult.Data.RefreshToken);
+			Assert.Equal(tokenResponse.AccessToken, successResult.Data?.AccessToken);
+			Assert.Equal(tokenResponse.Token, successResult.Data?.RefreshToken);
 		}
 
 		[Fact]
@@ -189,11 +189,11 @@ namespace ECommerceApi.UnitTests.Services
 			// Arrange
 			var request = new LoginRequest
 			{
-				Email = "user@example.com",
-				Password = "correctpass"
+				Email = "test@example.com",
+				Password = "password"
 			};
 
-			_userRepoMock.Setup(x => x.GetUserByEmailAsync(request.Email)).ThrowsAsync(new Exception("Something went wrong"));
+			_userRepoMock.Setup(x => x.GetUserByEmailAsync(request.Email)).ThrowsAsync(new Exception("error"));
 
 			// Act
 			var result = await _authService.LoginAsync(request);

@@ -35,7 +35,7 @@ namespace ECommerceApi.UnitTests.Services
 			// Arrange
 			var userId = Guid.NewGuid();
 
-			_cartRepoMock.Setup(x => x.GetCartWithItemsAndProductsAsync(userId)).ReturnsAsync((Cart)null!);
+			_cartRepoMock.Setup(x => x.GetCartWithItemsAndProductsAsync(userId)).ReturnsAsync((Cart?)null);
 
 			// Act
 			var result = await _orderService.CheckoutAsync(userId);
@@ -167,7 +167,7 @@ namespace ECommerceApi.UnitTests.Services
 
 			// Assert
 			var successResult = Assert.IsType<SuccessDataResult<OrderResponse>>(result);
-			Assert.NotEqual(Guid.Empty, successResult.Data.OrderId);
+			Assert.NotEqual(Guid.Empty, successResult.Data?.OrderId);
 		}
 
 		[Fact]
@@ -176,7 +176,7 @@ namespace ECommerceApi.UnitTests.Services
 			// Arrange
 			var userId = Guid.NewGuid();
 
-			_cartRepoMock.Setup(x => x.GetCartWithItemsAndProductsAsync(userId)).ThrowsAsync(new Exception("failed"));
+			_cartRepoMock.Setup(x => x.GetCartWithItemsAndProductsAsync(userId)).ThrowsAsync(new Exception("error"));
 
 			// Act
 			var result = await _orderService.CheckoutAsync(userId);
@@ -235,7 +235,7 @@ namespace ECommerceApi.UnitTests.Services
 			// Arrange
 			var userId = Guid.NewGuid();
 
-			_orderRepoMock.Setup(x => x.GetOrdersByUserIdAsync(userId)).ThrowsAsync(new Exception("failed"));
+			_orderRepoMock.Setup(x => x.GetOrdersByUserIdAsync(userId)).ThrowsAsync(new Exception("error"));
 
 			// Act
 			var result = await _orderService.GetUserOrdersAsync(userId);

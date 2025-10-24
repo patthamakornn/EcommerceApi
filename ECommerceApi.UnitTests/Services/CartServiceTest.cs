@@ -49,7 +49,7 @@ namespace ECommerceApi.UnitTests.Services
 			// Assert
 			var successResult = Assert.IsType<CreateDataResult<CartResponse>>(result);
 			Assert.Equal(HttpStatusCode.Created.GetHashCode(), successResult.StatusCode);
-			Assert.Equal(existingCart.Id, successResult.Data.CartId);
+			Assert.Equal(existingCart.Id, successResult.Data?.CartId);
 		}
 
 		[Fact]
@@ -67,7 +67,7 @@ namespace ECommerceApi.UnitTests.Services
 
 			// Assert
 			var successResult = Assert.IsType<CreateDataResult<CartResponse>>(result);
-			Assert.NotEqual(Guid.Empty, successResult.Data.CartId);
+			Assert.NotEqual(Guid.Empty, successResult.Data?.CartId);
 			Assert.Equal(HttpStatusCode.Created.GetHashCode(), successResult.StatusCode);
 			_cartRepoMock.Verify(x => x.GetCartByUserIdAsync(userId), Times.Once);
 			_cartRepoMock.Verify(x => x.CreateAsync(It.IsAny<Cart>()), Times.Once);
@@ -318,7 +318,7 @@ namespace ECommerceApi.UnitTests.Services
 			// Assert
 			var successResult = Assert.IsType<SuccessDataResult<CartDto>>(result);
 			Assert.Equal(HttpStatusCode.OK.GetHashCode(), successResult.StatusCode);
-			Assert.Equal(cartId, successResult.Data.CartId);
+			Assert.Equal(cartId, successResult.Data?.CartId);
 		}
 
 		[Fact]

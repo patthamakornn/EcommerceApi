@@ -49,7 +49,7 @@ namespace ECommerceApi.UnitTests.Services
 		{
 			// Arrange
 			var userId = Guid.NewGuid();
-			var token = "some-access-token";
+			var token = "access-token";
 
 			_refreshTokenRepoMock.Setup(x => x.GetTokenAsync(userId, token)).ReturnsAsync(new RefreshToken());
 
@@ -95,7 +95,7 @@ namespace ECommerceApi.UnitTests.Services
 		public async Task RefreshTokensAsync_ReturnsSuccessDataResult_WhenTokenIsValid()
 		{
 			// Arrange
-			var token = "valid-refresh-token";
+			var token = "refresh-token";
 			var user = new User 
 			{ 
 				Id = Guid.NewGuid(),
@@ -122,8 +122,8 @@ namespace ECommerceApi.UnitTests.Services
 			// Assert
 			var successResult = Assert.IsType<SuccessDataResult<RefreshTokenResponse>>(result);
 			Assert.Equal(HttpStatusCode.OK.GetHashCode(), successResult.StatusCode);
-			Assert.Equal("new-access-token", successResult.Data.AccessToken);
-			Assert.False(string.IsNullOrWhiteSpace(successResult.Data.RefreshToken));
+			Assert.Equal("new-access-token", successResult.Data?.AccessToken);
+			Assert.False(string.IsNullOrWhiteSpace(successResult.Data?.RefreshToken));
 		}
 
 		[Fact]
@@ -131,7 +131,7 @@ namespace ECommerceApi.UnitTests.Services
 		{
 			// Arrange
 			var user = new User { Id = Guid.NewGuid() };
-			var accessToken = "access-token-generated";
+			var accessToken = "access-token";
 
 			_refreshTokenRepoMock.Setup(x => x.DeleteOldTokensAsync(user.Id)).Returns(Task.CompletedTask);
 			_jwtTokenGeneratorMock.Setup(x => x.GenerateToken(user)).Returns(accessToken);

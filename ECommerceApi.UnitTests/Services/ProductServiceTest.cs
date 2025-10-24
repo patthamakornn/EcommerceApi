@@ -32,23 +32,21 @@ namespace ECommerceApi.UnitTests.Services
 				new Product { Id = Guid.NewGuid(), ProductName = "Product B", Price = 200 },
 			};
 
-			_productRepoMock.Setup(repo => repo.GetAllAsync())
-				.ReturnsAsync(products);
+			_productRepoMock.Setup(repo => repo.GetAllAsync()).ReturnsAsync(products);
 
 			// Act
 			var result = await _productService.GetAllProductsAsync();
 
 			// Assert
 			var successResult = Assert.IsType<SuccessDataResult<List<ProductResponse>>>(result);
-			Assert.Equal(2, successResult.Data.Count());
+			Assert.Equal(2, successResult.Data?.Count);
 		}
 
 		[Fact]
 		public async Task GetAllProductsAsync_ReturnsInternalServerError_WhenException()
 		{
 			// Arrange
-			_productRepoMock.Setup(repo => repo.GetAllAsync())
-				.ThrowsAsync(new Exception("failure"));
+			_productRepoMock.Setup(repo => repo.GetAllAsync()).ThrowsAsync(new Exception("error"));
 
 			// Act
 			var result = await _productService.GetAllProductsAsync();

@@ -11,19 +11,9 @@ namespace ECommerceApi.Application.Models.Common
 			_result = result ?? throw new ArgumentNullException(nameof(result));
 		}
 
-		private ApiResult(object data)
-		{
-			_result = (ICustomResult)data;
-		}
-
 		public static IActionResult Create(ICustomResult result)
 		{
 			return new ApiResult(result);
-		}
-
-		public static IActionResult Create(object data)
-		{
-			return new ApiResult(data);
 		}
 
 		public async Task ExecuteResultAsync(ActionContext context)

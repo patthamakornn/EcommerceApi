@@ -5,7 +5,7 @@ namespace ECommerceApi.Application.Models.Common
 {
 	public class DataResult<T> : Result
 	{
-		public T Data { get; }
+		public T? Data { get; }
 		public DataResult() { }
 
 		public DataResult(HttpStatusCode statusCode, T data) : base(statusCode)
@@ -18,10 +18,11 @@ namespace ECommerceApi.Application.Models.Common
 			Data = data;
 		}
 	}
+
 	public class Result : ICustomResult
 	{
 		public int StatusCode { get; }
-		public string StatusMessage { get; }
+		public string StatusMessage { get; } = string.Empty;
 
 		public Result(HttpStatusCode statusCode)
 		{
@@ -77,7 +78,7 @@ namespace ECommerceApi.Application.Models.Common
 	{
 		public SuccessDataResult(T data) : base(HttpStatusCode.OK, data) { }
 	}
-
+	
 	public class CreateDataResult<T> : DataResult<T>
 	{
 		public CreateDataResult(T data) : base(HttpStatusCode.Created, data) { }
@@ -96,7 +97,6 @@ namespace ECommerceApi.Application.Models.Common
 
 		public ErrorDataResult(HttpStatusCode statusCode, T error) : base(statusCode, error) { }
 	}
-
 
 	public class BadRequestResult<T> : ErrorDataResult<T>
 	{
@@ -124,7 +124,7 @@ namespace ECommerceApi.Application.Models.Common
 
 		public ErrorResult(HttpStatusCode statusCode) : base(statusCode) { }
 
-		public T ResponseException { get; set; }
+		public T? ResponseException { get; set; }
 	}
 
 	public sealed class ResponseException
@@ -139,6 +139,7 @@ namespace ECommerceApi.Application.Models.Common
 			return new Result(HttpStatusCode.OK);
 		}
 	}
+
 	public class BadRequestResultStringExample : IExamplesProvider<BadRequestResult<string>>
 	{
 		public BadRequestResult<string> GetExamples()
